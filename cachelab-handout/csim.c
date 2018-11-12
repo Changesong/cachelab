@@ -90,13 +90,13 @@ cache_t setCache() // You MUST call initCacheInfo function first.
 
 void freeCache(cache_t cache)
 {
-    int i, j;
+    int i;
     for(i = 0; i < cInfo.sets; i++){
-        for(j = 0; j < cInfo.lines; j++){
-            if(cache.sets[i].lines != NULL){
-                free(cache.sets[i].lines);
-            }
+        if(cache.sets[i].lines != NULL){
+            free(cache.sets[i].lines);
         }
+    }
+    if(cache.sets != NULL){
         free(cache.sets);
     }
 }
