@@ -6,6 +6,8 @@
  *
  * A transpose function is evaluated by counting the number of misses
  * on a 1KB direct mapped cache with a block size of 32 bytes.
+ * Changkeun Song
+ * Changesong
  */ 
 #include <stdio.h>
 #include "cachelab.h"
@@ -22,6 +24,62 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
+    int block_size;
+    int row, col, block_row, block_col;
+    int temp = 0, diag = 0;
+
+    if(M == N && (M % 16) == 0) {    //square matrix and size is dividable by 8
+        if (M == 32) {  //size == 32, block size == 8
+            block_size = 8;
+        }
+        else if(M == 64) {  //size == 64, block size == 4
+            block_size = 4;
+        }
+        else { 
+            block_size = 16;
+        }
+        for(block_col = 0; block_col < N; block_col += block_size) {
+                for(block_row = 0; block_row < N; block_row += block_size) {
+                    for(row = block_row; row < block_row+block_size; row++) {
+                        for(col = block_col; col < block_col+block_size; col++) {
+                            if(row == col) {
+                                temp = A[row][col];
+                                diag = row;
+                            }
+                            else {
+                                B[col][row] = A[row][col];
+                            }
+
+                        }
+                        if(block_row == block_col) {
+                            B[diag][diag] = temp;
+                        }
+                    }
+                }
+            }
+    }
+    else {  //not square matrix
+        block_size = 16;
+        for(block_col = 0; block_col < N; block_col += block_size) {
+                for(block_row = 0; block_row < N; block_row += block_size) {
+                    for(row = block_row; (row < block_row+block_size) && (row < N); row++) {
+                        for(col = block_col; (col < block_col+block_size) && (col < M); col++) {
+                            if(row == col) {
+                                temp = A[row][col];
+                                diag = row;
+                            }
+                            else {
+                                B[col][row] = A[row][col];
+                            }
+
+                        }
+                        if(block_row == block_col) {
+                            B[diag][diag] = temp;
+                        }
+                    }
+                }
+            }
+    }
 }
 
 /* 
